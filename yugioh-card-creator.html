@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遊戯王 紹介画像メーカー</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   THEME TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --accent:      #b8912a;
+  --accent-glow: rgba(184,145,42,0.18);
+  --magic-color: #1b9e5e;
+  --trap-color:  #c0336e;
+  --link-color:  #2270d4;
+  --danger:      #d93030;
+  --r-card: 14px;
+  --r-sm:    7px;
+  --t: 0.18s ease;
+}
+[data-theme="light"] {
+  --bg:        #f0ece4;
+  --bg2:       #e8e3d9;
+  --surface:   #ffffff;
+  --surface2:  #f7f4ef;
+  --surface3:  #ede8df;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.15);
+  --text:      #1a1610;
+  --text2:     #6b5d48;
+  --text3:     #9e8e78;
+  --shadow:    0 2px 10px rgba(0,0,0,0.09);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
+  --hdr-bg:    rgba(240,236,228,0.93);
+  --cvs-bg:    #ddd8cc;
+  --inp-bg:    #faf8f5;
+  --trk:       #cfc9be;
+}
+[data-theme="dark"] {
+  --bg:        #060910;
+  --bg2:       #0b0f18;
+  --surface:   #0f1520;
+  --surface2:  #141c28;
+  --surface3:  #1c2638;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #e8edf5;
+  --text2:     #8a9bb0;
+  --text3:     #5a6e85;
+  --shadow:    0 2px 12px rgba(0,0,0,0.45);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.70);
+  --hdr-bg:    rgba(6,9,16,0.93);
+  --cvs-bg:    #000;
+  --inp-bg:    #060910;
+  --trk:       #2a3545;
+  --accent:      #c8a96e;
+  --accent-glow: rgba(200,169,110,0.18);
+  --magic-color: #4dd898;
+  --trap-color:  #e87aaa;
+  --link-color:  #5aa8ff;
+}
+
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:60px;transition:background var(--t),color var(--t)}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.hdr{background:var(--hdr-bg);border-bottom:1px solid var(--border2);padding:13px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:200;backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+.hdr-logo{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--accent);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 18px var(--accent-glow);line-height:1}
+.hdr-sub{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* Theme toggle */
+.th-tog{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);transition:border-color var(--t),background var(--t);user-select:none}
+.th-tog:hover{border-color:var(--accent)}
+.th-track{width:32px;height:18px;border-radius:9px;background:var(--trk);position:relative;transition:background .2s;flex-shrink:0}
+.th-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+[data-theme="dark"] .th-thumb{transform:translateX(14px)}
+[data-theme="dark"] .th-track{background:rgba(200,169,110,.35)}
+.th-ico{font-size:13px;line-height:1}
+.th-lbl{font-size:10px;color:var(--text2);letter-spacing:.5px}
+
+.btn-ghost{padding:7px 13px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;transition:all var(--t);font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app{display:grid;grid-template-columns:1fr 372px;max-width:1380px;margin:0 auto}
+
+/* Preview */
+.prev-pane{padding:22px;position:sticky;top:55px;height:calc(100vh - 55px);display:flex;flex-direction:column;gap:14px}
+.cvs-wrap{flex:1;background:var(--cvs-bg);border-radius:var(--r-card);overflow:hidden;box-shadow:var(--shadow-lg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;transition:background var(--t)}
+#ym_canvas{width:100%;height:auto;display:block;max-height:calc(100vh - 195px)}
+.cvs-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 7px;font-size:10px;color:rgba(255,255,255,.65);backdrop-filter:blur(4px);letter-spacing:1px;pointer-events:none}
+.prev-act{display:flex;gap:10px}
+.btn-save{flex:1;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#8a6520);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:.8px;transition:all .2s;box-shadow:0 3px 14px var(--accent-glow)}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--accent-glow)}
+.btn-save:active{transform:none}
+
+/* Control panel */
+.ctrl{border-left:1px solid var(--border);overflow-y:auto;padding:17px 15px;display:flex;flex-direction:column;gap:6px;background:var(--bg2);transition:background var(--t),border-color var(--t);scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.ctrl::-webkit-scrollbar{width:4px}
+.ctrl::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+
+/* URL import box */
+.url-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-card);padding:13px;box-shadow:var(--shadow);transition:background var(--t)}
+.url-hdr{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.url-ico{width:28px;height:28px;border-radius:7px;background:rgba(90,168,255,.12);color:var(--link-color);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.url-ttl{font-size:12px;font-weight:700;letter-spacing:.3px}
+.url-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.url-row{display:flex;gap:7px}
+.url-row input{flex:1;min-width:0}
+.btn-fetch{padding:8px 14px;border-radius:var(--r-sm);border:none;background:var(--link-color);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.btn-fetch:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-fetch:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.fetch-st{margin-top:8px;font-size:11px;border-radius:6px;padding:7px 10px;display:none;line-height:1.5}
+.fetch-st.loading{display:flex;align-items:center;gap:8px;color:var(--text2);background:var(--surface2);border:1px solid var(--border)}
+.fetch-st.ok{display:block;color:var(--magic-color);background:rgba(78,205,150,.08);border:1px solid rgba(78,205,150,.25)}
+.fetch-st.err{display:block;color:var(--danger);background:rgba(217,48,48,.07);border:1px solid rgba(217,48,48,.2)}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--link-color);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Mode tabs */
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:4px;background:var(--surface);border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.mode-tab{padding:9px 4px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;font-family:'Noto Sans JP',sans-serif;text-align:center}
+.mode-tab.active-monster{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(184,145,42,.25)}
+.mode-tab.active-magic{background:rgba(78,205,150,.1);color:var(--magic-color);border:1px solid rgba(78,205,150,.25)}
+.mode-tab.active-trap{background:rgba(192,51,110,.1);color:var(--trap-color);border:1px solid rgba(192,51,110,.25)}
+
+/* Accordion */
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden;transition:border-color var(--t),background var(--t);box-shadow:var(--shadow)}
+.sec:hover{border-color:var(--border2)}
+.sec-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;transition:background var(--t)}
+.sec-hdr:hover{background:var(--surface2)}
+.sec-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.sec-ttl{font-size:12px;font-weight:600;letter-spacing:.4px;flex:1}
+.sec-arr{font-size:9px;color:var(--text3);transition:transform .2s}
+.sec.open .sec-arr{transform:rotate(180deg)}
+.sec-body{padding:0 14px 14px;display:none}
+.sec.open .sec-body{display:block}
+
+/* Form */
+label{display:block;font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin:10px 0 4px}
+label:first-child{margin-top:0}
+input[type=text],input[type=number],input[type=url],select,textarea{width:100%;background:var(--inp-bg);color:var(--text);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;font-family:'Noto Sans JP',sans-serif;transition:border-color var(--t),background var(--t),box-shadow var(--t);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+input[type=color]{width:100%;height:36px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--inp-bg);cursor:pointer;padding:3px 4px}
+textarea{resize:vertical;min-height:78px;line-height:1.6}
+input[type=file]{font-size:11px;color:var(--text2);background:var(--surface2);border:1.5px dashed var(--border2);border-radius:var(--r-sm);padding:8px 10px;cursor:pointer;transition:border-color var(--t)}
+input[type=file]:hover{border-color:var(--link-color)}
+
+/* Range */
+.rrow{display:flex;align-items:center;gap:8px;margin-top:4px}
+input[type=range]{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--surface3);cursor:pointer;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent-glow)}
+.rval{font-size:11px;font-weight:700;color:var(--accent);min-width:34px;text-align:right}
+.mini-btn{font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid var(--accent);background:rgba(99,179,237,.12);color:var(--accent);cursor:pointer;margin-left:6px;vertical-align:middle;line-height:1.6;font-weight:600}
+.mini-btn:hover{background:rgba(99,179,237,.28)}
+
+/* Grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ghalf{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+
+/* Link arrows */
+.larr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);padding:10px;border-radius:8px;border:1px solid var(--border);max-width:150px;margin:6px auto}
+.arr-btn{aspect-ratio:1;border-radius:5px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-size:14px;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.arr-btn.center{cursor:default;font-size:8px;color:var(--text3);background:transparent}
+.arr-btn.on{background:rgba(90,168,255,.15);border-color:var(--link-color);color:var(--link-color)}
+.arr-btn:not(.center):hover{border-color:var(--link-color);color:var(--link-color)}
+.link-rating{font-size:11px;color:var(--link-color);text-align:center;margin-top:4px;font-weight:700}
+
+/* Pendulum box */
+.pbox{background:rgba(78,205,150,.05);border:1.5px dashed rgba(78,205,150,.3);border-radius:8px;padding:10px;margin-top:8px}
+.pbox label{color:var(--magic-color)}
+
+/* Color grid */
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.citem{display:flex;flex-direction:column;gap:4px}
+.citem label{margin:0;font-size:9px;text-align:center}
+
+/* Data strip */
+.data-strip{margin-top:10px;padding:11px;background:var(--surface);border-radius:8px;border:1px solid var(--border);display:flex;gap:7px;align-items:center;box-shadow:var(--shadow)}
+.data-strip button{padding:6px 11px;border-radius:5px;font-size:10px;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);transition:.18s;font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.data-strip button:hover{background:var(--surface3);color:var(--text)}
+.data-strip input{flex:1;font-size:10px !important;padding:6px 8px !important;min-width:0}
+
+.hidden{display:none !important}
+
+@media(max-width:920px){
+  .app{grid-template-columns:1fr}
+  .prev-pane{position:relative;top:0;height:auto}
+  #ym_canvas{max-height:56vw}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-logo">YGO CARD MAKER</div>
+    <div class="hdr-sub">紹介画像ジェネレーター</div>
+  </div>
+  <div class="hdr-r">
+    <div class="th-tog" id="thTog">
+      <span class="th-ico" id="thIco">☀️</span>
+      <div class="th-track"><div class="th-thumb"></div></div>
+      <span class="th-lbl" id="thLbl">LIGHT</span>
+    </div>
+    <button class="btn-ghost" id="ym_exportBtn">📤 書き出す</button>
+    <button class="btn-ghost" id="ym_resetAll">🔄 リセット</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- Preview -->
+  <div class="prev-pane">
+    <div class="cvs-wrap">
+      <canvas id="ym_canvas" width="1280" height="720"></canvas>
+      <div class="cvs-badge">1280 × 720</div>
+    </div>
+    <div class="prev-act">
+      <button class="btn-save" id="ym_saveBtn">💾 この画像を保存する</button>
+    </div>
+    <div class="data-strip">
+      <input type="text" id="ym_importInput" placeholder="設定コードを貼り付けて読み込む..." />
+      <button id="ym_importBtn">📥 読み込む</button>
+    </div>
+  </div>
+
+  <!-- Control -->
+  <div class="ctrl">
+
+    <!-- URL Import -->
+    <div class="url-box">
+      <div class="url-hdr">
+        <div class="url-ico">🔗</div>
+        <div>
+          <div class="url-ttl">公式DBから自動取り込み</div>
+          <div class="url-sub">cid= を含む公式DBのURLを貼るだけ（ygoprodeck API経由）</div>
+        </div>
+      </div>
+      <div class="url-row">
+        <input type="url" id="ym_dbUrl"
+          placeholder="https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=..." />
+        <button class="btn-fetch" id="ym_fetchBtn">取り込む</button>
+      </div>
+      <div class="fetch-st" id="ym_fetchSt"></div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active-monster" data-mode="monster">⚔️ モンスター</button>
+      <button class="mode-tab" data-mode="magic">✨ 魔法</button>
+      <button class="mode-tab" data-mode="trap">🕸 罠</button>
+    </div>
+    <input type="hidden" id="ym_mode" value="monster">
+
+    <!-- 背景 -->
+    <div class="sec" id="s_bg">
+      <div class="sec-hdr" onclick="toggleSec('s_bg')">
+        <div class="sec-ico" style="background:rgba(125,211,252,.12);color:#5ba8c8">🌄</div>
+        <div class="sec-ttl">背景の設定</div><div class="sec-arr">▼</div>
+      </div>
+      <div class="sec-body">
+        <label>背景画像</label><input type="file" id="ym_bgFile" accept="image/*">
+        <label>背景色</label><input type="color" id="ym_bgColor" value="#1b2430">
+      </div>
+    </div>
+
+    <!-- カード画像 -->
+    <div class="sec open" id="s_card">
+      <div class="sec-hdr" onclick="toggleSec('s_card')">
+        <div class="sec-ico" style="background:var(--accent-glow);color:var(--accent)">🃏</div>
+        <div class="sec-ttl">カード画像</div><div class="sec-arr">▼</div>
+      </div>
+      <div class="sec-body">
+        <input type="file" id="ym_cardFile" accept="image/*">
+        <div class="g2" style="margin-top:10px">
+          <div>
+            <label>位置 X</label>
+            <div class="rrow"><input type="range" id="ym_cardX" min="0" max="800" value="70"><span class="rval" id="v_cardX">70</span></div>
+          </div>
+          <div>
+            <label>サイズ</label>
+            <div class="rrow"><input type="range" id="ym_cardW" min="150" max="700" value="420"><span class="rval" id="v_cardW">420</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- カード情報 -->
+    <div class="sec open" id="s_info">
+      <div class="sec-hdr" onclick="toggleSec('s_info')">
+        <div class="sec-ico" style="background:var(--accent-glow);color:var(--accent)">📝</div>
+        <div class="sec-ttl">カード情報</div><div class="sec-arr">▼</div>
+      </div>
+      <div class="sec-body">
+        <div class="ghalf">
+          <div><label>カード名</label><input type="text" id="ym_name" value="ブラック・マジシャン"></div>
+          <div><label>名前サイズ <button class="mini-btn" onclick="autoFitSizes()" title="パネル幅に合わせてサイズを自動調整">⚡ 自動調整</button></label><div class="rrow"><input type="range" id="ym_nameSize" min="20" max="80" value="42"><span class="rval" id="v_nameSize">42</span></div></div>
+        </div>
+
+        <div class="mode-monster">
+          <div class="g2" style="margin-top:6px">
+            <div><label>属性</label>
+              <select id="ym_attr"><option>闇</option><option>光</option><option>地</option><option>水</option><option>炎</option><option>風</option><option>神</option></select>
+            </div>
+            <div><label>種族</label>
+              <select id="ym_race">
+                <option>魔法使い族</option><option>ドラゴン族</option><option>アンデット族</option><option>戦士族</option><option>獣戦士族</option><option>獣族</option><option>鳥獣族</option><option>悪魔族</option><option>天使族</option><option>昆虫族</option><option>恐竜族</option><option>爬虫類族</option><option>魚族</option><option>海竜族</option><option>水族</option><option>炎族</option><option>雷族</option><option>岩石族</option><option>植物族</option><option>機械族</option><option>サイキック族</option><option>幻神獣族</option><option>創造神族</option><option>幻竜族</option><option>サイバース族</option><option>幻想魔族</option>
+              </select>
+            </div>
+          </div>
+          <div class="g3" style="margin-top:10px">
+            <div><label>種別</label>
+              <select id="ym_lvType" onchange="onLvChange()">
+                <option value="レベル">レベル</option><option value="ランク">ランク</option><option value="リンク">リンク</option>
+              </select>
+            </div>
+            <div id="lv_wrap"><label>数値</label><input type="number" id="ym_level" value="7" min="0" max="13"></div>
+            <div id="sc_wrap"><label>Ｐスケール</label>
+              <select id="ym_scale">
+                <option value="none">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+              </select>
+            </div>
+          </div>
+          <!-- Link markers -->
+          <div id="larr_wrap" class="hidden">
+            <label>リンクマーカー</label>
+            <div class="larr-grid">
+              <button class="arr-btn" data-dir="TL">↖</button><button class="arr-btn" data-dir="T">↑</button><button class="arr-btn" data-dir="TR">↗</button>
+              <button class="arr-btn" data-dir="L">←</button><button class="arr-btn center">LINK</button><button class="arr-btn" data-dir="R">→</button>
+              <button class="arr-btn" data-dir="BL">↙</button><button class="arr-btn" data-dir="B">↓</button><button class="arr-btn" data-dir="BR">↘</button>
+            </div>
+            <div class="link-rating" id="link_rating">LINK-0</div>
+          </div>
+          <input type="hidden" id="ym_linkArrows" value="">
+          <div class="g2" style="margin-top:10px">
+            <div><label>ATK</label><input type="text" id="ym_atk" value="2500"></div>
+            <div id="def_wrap"><label>DEF</label><input type="text" id="ym_def" value="2100"></div>
+          </div>
+        </div>
+
+        <div class="mode-magic-trap hidden">
+          <div class="g2" style="margin-top:6px">
+            <div><label>種類</label>
+              <select id="ym_cardKind" onchange="updateMagicIcons()"><option value="魔法">魔法カード</option><option value="罠">罠カード</option></select>
+            </div>
+            <div><label>アイコン</label>
+              <select id="ym_magicIcon"><option>通常</option><option>永続</option><option>速攻</option><option>フィールド</option><option>装備</option><option>儀式</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label>ステータス文字サイズ</label>
+          <div class="rrow"><input type="range" id="ym_statusSize" min="14" max="60" value="28"><span class="rval" id="v_statusSize">28</span></div>
+        </div>
+        <div style="margin-top:6px" class="mode-monster">
+          <label>ATK/DEF 文字サイズ</label>
+          <div class="rrow"><input type="range" id="ym_statFontSize" min="20" max="80" value="38"><span class="rval" id="v_statFontSize">38</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- テキスト -->
+    <div class="sec open" id="s_txt">
+      <div class="sec-hdr" onclick="toggleSec('s_txt')">
+        <div class="sec-ico" style="background:rgba(167,139,250,.12);color:#8b5cf6">📜</div>
+        <div class="sec-ttl">効果・テキスト</div><div class="sec-arr">▼</div>
+      </div>
+      <div class="sec-body">
+        <div id="p_box" class="pbox hidden">
+          <label>【Ｐ効果】見出し</label><input type="text" id="ym_pHead" value="【ペンデュラム効果】">
+          <label>内容</label><textarea id="ym_pEffect">ここにペンデュラム効果を入力してください。</textarea>
+        </div>
+        <div class="mode-monster">
+          <label>モンスター効果 見出し</label><input type="text" id="ym_mHead" value="【モンスター効果】">
+        </div>
+        <label>効果テキスト</label><textarea id="ym_effect">魔法使いとしては、攻撃力・守備力ともに最高クラス。</textarea>
+        <div style="margin-top:10px">
+          <label>効果文字サイズ（最大）</label>
+          <div class="rrow"><input type="range" id="ym_fontSize" min="10" max="50" value="24"><span class="rval" id="v_fontSize">24</span></div>
+        </div>
+        <div id="pY_wrap" class="hidden" style="margin-top:8px">
+          <label>Ｐ効果 Y位置（ドラッグ可）</label>
+          <div class="rrow"><input type="range" id="ym_pY" min="100" max="650" value="330"><span class="rval" id="v_pY">330</span></div>
+        </div>
+        <div style="margin-top:6px">
+          <label>効果テキスト Y位置（ドラッグ可）</label>
+          <div class="rrow"><input type="range" id="ym_mY" min="100" max="650" value="530"><span class="rval" id="v_mY">530</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- デザイン -->
+    <div class="sec" id="s_design">
+      <div class="sec-hdr" onclick="toggleSec('s_design')">
+        <div class="sec-ico" style="background:rgba(248,113,113,.12);color:#f87171">🎨</div>
+        <div class="sec-ttl">デザイン詳細</div><div class="sec-arr">▼</div>
+      </div>
+      <div class="sec-body">
+        <div class="cgrid">
+          <div class="citem"><label>文字色</label><input type="color" id="ym_textColor" value="#ffffff"></div>
+          <div class="citem"><label>縁取り</label><input type="color" id="ym_strokeColor" value="#000000"></div>
+          <div class="citem"><label>ライン</label><input type="color" id="ym_barColor" value="#c8a96e"></div>
+          <div class="citem"><label>パネル</label><input type="color" id="ym_panelColor" value="#0a0f19"></div>
+        </div>
+        <div style="margin-top:12px">
+          <label>縁取り幅</label>
+          <div class="rrow"><input type="range" id="ym_strokeWidth" min="0" max="8" value="0"><span class="rval" id="v_strokeWidth">0</span></div>
+        </div>
+        <div style="margin-top:8px">
+          <label>パネル不透明度</label>
+          <div class="rrow"><input type="range" id="ym_panelAlpha" min="0" max="1" step="0.01" value="0.94"><span class="rval" id="v_panelAlpha">0.94</span></div>
+        </div>
+        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.05em;margin-bottom:10px">📐 パネルサイズ</div>
+          <label>上マージン</label>
+          <div class="rrow"><input type="range" id="ym_pmT" min="0" max="200" value="40" oninput="draw()"><span class="rval" id="v_pmT">40</span></div>
+          <label style="margin-top:6px;display:block">下マージン</label>
+          <div class="rrow"><input type="range" id="ym_pmB" min="0" max="200" value="40" oninput="draw()"><span class="rval" id="v_pmB">40</span></div>
+          <label style="margin-top:6px;display:block">右マージン</label>
+          <div class="rrow"><input type="range" id="ym_pmR" min="0" max="300" value="34" oninput="draw()"><span class="rval" id="v_pmR">34</span></div>
+          <label style="margin-top:6px;display:block">パネル幅</label>
+          <div class="rrow"><input type="range" id="ym_pw" min="300" max="1280" value="686" oninput="draw()"><span class="rval" id="v_pw">686</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ctrl -->
+</div><!-- /app -->
+
+<script>
+(function(){
+
+/* ── Theme ─────────────────────────────────────── */
+const root=document.documentElement;
+const thTog=document.getElementById('thTog');
+const thIco=document.getElementById('thIco');
+const thLbl=document.getElementById('thLbl');
+function setTheme(dark){
+  root.setAttribute('data-theme',dark?'dark':'light');
+  thIco.textContent=dark?'🌙':'☀️';
+  thLbl.textContent=dark?'DARK':'LIGHT';
+  localStorage.setItem('ygT',dark?'dark':'light');
+}
+thTog.addEventListener('click',()=>setTheme(root.getAttribute('data-theme')!=='dark'));
+setTheme(localStorage.getItem('ygT')==='dark');
+
+/* ── Canvas ────────────────────────────────────── */
+const cv=document.getElementById('ym_canvas');
+const ctx=cv.getContext('2d');
+let bgImg=null,cardImg=null,isDrag=null;
+
+const DEF={
+  ym_mode:'monster',ym_bgColor:'#1b2430',
+  ym_cardX:'70',ym_cardW:'420',
+  ym_name:'ブラック・マジシャン',ym_nameSize:'42',
+  ym_level:'7',ym_scale:'none',ym_lvType:'レベル',ym_linkArrows:'',
+  ym_statusSize:'28',ym_statFontSize:'38',
+  ym_atk:'2500',ym_def:'2100',ym_fontSize:'24',
+  ym_attr:'闇',ym_race:'魔法使い族',
+  ym_cardKind:'魔法',ym_magicIcon:'通常',
+  ym_pHead:'【ペンデュラム効果】',ym_pEffect:'ここにペンデュラム効果を入力してください。',
+  ym_mHead:'【モンスター効果】',ym_effect:'魔法使いとしては、攻撃力・守備力ともに最高クラス。',
+  ym_textColor:'#ffffff',ym_strokeColor:'#000000',ym_strokeWidth:'0',
+  ym_barColor:'#c8a96e',ym_panelColor:'#0a0f19',ym_panelAlpha:'0.94',
+  ym_pmT:'40',ym_pmB:'40',ym_pmR:'34',ym_pw:'686',
+  ym_pY:'330',ym_mY:'530'
+};
+const g=id=>{const e=document.getElementById(id);return e?e.value:(DEF[id]||'')};
+
+/* ── Draw ──────────────────────────────────────── */
+function draw(){
+  syncRV();
+  const mode=g('ym_mode'),isM=mode==='monster';
+  const lvType=g('ym_lvType');
+  const isLink=isM&&lvType==='リンク';
+  const isP=isM&&g('ym_scale')!=='none'&&!isLink;
+
+  document.getElementById('p_box').classList.toggle('hidden',!isP);
+  document.getElementById('pY_wrap').classList.toggle('hidden',!isP);
+  document.getElementById('larr_wrap').classList.toggle('hidden',!isLink);
+  document.getElementById('sc_wrap').classList.toggle('hidden',isLink);
+  document.getElementById('def_wrap').classList.toggle('hidden',isLink);
+  document.querySelectorAll('.mode-monster').forEach(el=>el.classList.toggle('hidden',!isM));
+  document.querySelectorAll('.mode-magic-trap').forEach(el=>el.classList.toggle('hidden',isM));
+
+  ctx.clearRect(0,0,1280,720);
+  ctx.fillStyle=g('ym_bgColor');ctx.fillRect(0,0,1280,720);
+  if(bgImg){const s=Math.max(1280/bgImg.width,720/bgImg.height);ctx.drawImage(bgImg,(1280-bgImg.width*s)/2,(720-bgImg.height*s)/2,bgImg.width*s,bgImg.height*s)}
+
+  const pmT=parseInt(g('ym_pmT')),pmB=parseInt(g('ym_pmB')),pmR=parseInt(g('ym_pmR'));
+  const pw=parseInt(g('ym_pw'));
+  const px=1280-pmR-pw, py=pmT, ph=720-pmT-pmB;
+  ctx.save();ctx.fillStyle=h2r(g('ym_panelColor'),parseFloat(g('ym_panelAlpha')));
+  ctx.shadowBlur=44;ctx.shadowColor='rgba(0,0,0,.7)';
+  ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();ctx.restore();
+
+  const bar=g('ym_barColor'),sw=parseInt(g('ym_strokeWidth'));
+  function dt(txt,x,y,font,align='left',col=null){
+    if(txt===null||txt===undefined||txt==='')return;
+    ctx.save();ctx.font=font;ctx.fillStyle=col||g('ym_textColor');ctx.textAlign=align;ctx.textBaseline='middle';
+    if(sw>0){ctx.strokeStyle=g('ym_strokeColor');ctx.lineWidth=sw;ctx.strokeText(String(txt),x,y)}
+    ctx.fillText(String(txt),x,y);ctx.restore();
+  }
+  const txL=px+44,txR=px+pw-44;
+
+  dt(g('ym_name'),txL,py+68,`bold ${g('ym_nameSize')}px "Noto Sans JP",sans-serif`);
+
+  ctx.strokeStyle=bar;ctx.lineWidth=2;ctx.globalAlpha=.6;
+  ctx.beginPath();ctx.moveTo(txL,py+108);ctx.lineTo(txR,py+108);ctx.stroke();ctx.globalAlpha=1;
+
+  const ss=parseInt(g('ym_statusSize'));
+  if(isM){
+    let st=`属性：${g('ym_attr')} ／ ${g('ym_race')} ／ ${lvType}：`;
+    st+=isLink?`LINK-${getActArr().length}`:g('ym_level');
+    if(isP)st+=` ／ Ｐスケール：${g('ym_scale')}`;
+    dt(st,txL,py+152,`bold ${ss}px "Noto Sans JP",sans-serif`);
+
+    const sf=parseInt(g('ym_statFontSize'));
+    dt(`ATK  ${g('ym_atk')}`,txL,py+218,`bold ${sf}px "Noto Sans JP",sans-serif`);
+    if(!isLink)dt(`DEF  ${g('ym_def')}`,txL+330,py+218,`bold ${sf}px "Noto Sans JP",sans-serif`);
+    if(isLink){
+      const AM={TL:'↖',T:'↑',TR:'↗',L:'←',R:'→',BL:'↙',B:'↓',BR:'↘'};
+      const as=getActArr().map(d=>AM[d]).join(' ');
+      if(as){ctx.save();ctx.font='bold 22px sans-serif';ctx.fillStyle='#5aa8ff';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(as,txR,py+218);ctx.restore()}
+    }
+  }else{
+    const kind=g('ym_cardKind'),icon=g('ym_magicIcon');
+    dt(`【 ${icon!=='通常'?icon+' ':''}${kind}カード 】`,txL,py+152,`bold ${ss}px "Noto Sans JP",sans-serif`);
+  }
+
+  ctx.strokeStyle=bar;ctx.lineWidth=1;ctx.globalAlpha=.35;
+  ctx.beginPath();ctx.moveTo(txL,py+260);ctx.lineTo(txR,py+260);ctx.stroke();ctx.globalAlpha=1;
+
+  // ── テキスト自動折り返し ──────────────────────────────────────
+  // 1行のテキストをmaxWidth内で自動折り返した行配列を返す
+  function wrapLines(text, font, maxWidth){
+    ctx.save(); ctx.font = font;
+    const lines = [];
+    for(const para of text.split('\n')){
+      if(para === ''){ lines.push(''); continue; }
+      let cur = '';
+      for(const ch of para){
+        const test = cur + ch;
+        if(ctx.measureText(test).width > maxWidth && cur !== ''){
+          lines.push(cur);
+          cur = ch;
+        } else {
+          cur = test;
+        }
+      }
+      if(cur) lines.push(cur);
+    }
+    ctx.restore();
+    return lines;
+  }
+
+  // ── 自動フォントサイズ計算 ──────────────────────────────────────
+  // テキスト(複数ブロック)が縦幅maxHに収まる最大fsを返す
+  // blocks = [{text, hasHead}]  hasHead=見出し行1本分の高さを加算するか
+  function calcAutoFs(blocks, maxW, maxH, fsMax){
+    for(let fs = fsMax; fs >= 10; fs--){
+      const lh = fs * 1.65, sp = fs * 0.5;
+      const bodyFont = `${fs}px "Noto Sans JP",sans-serif`;
+      let totalH = 0;
+      for(const {text, hasHead} of blocks){
+        if(hasHead) totalH += (fs+2) + sp;  // 見出し行の高さ
+        for(const para of text.split('\n')){
+          if(para === ''){ totalH += lh; continue; }
+          // 折り返し行数カウント
+          ctx.save(); ctx.font = bodyFont;
+          let cur = '', rows = 1;
+          for(const ch of para){
+            const test = cur + ch;
+            if(ctx.measureText(test).width > maxW && cur !== ''){ rows++; cur = ch; }
+            else cur = test;
+          }
+          ctx.restore();
+          totalH += rows * lh;
+        }
+      }
+      if(totalH <= maxH) return fs;
+    }
+    return 10;
+  }
+
+  // ── 効果テキストエリアの縦範囲を計算 ──
+  // 効果テキスト開始Y: 区切り線(py+260)より下、パネル下端-余白まで
+  const txtAreaTop = py + 278;           // 区切り線(py+260)+18px余白
+  const txtAreaBot = py + ph - 24;       // パネル下端-24px余白
+  const txtAreaH   = txtAreaBot - txtAreaTop;
+  const txtW       = txR - txL;          // テキスト幅
+
+  let fsMax = parseInt(g('ym_fontSize'));
+  let fs;
+
+  if(isP){
+    // ペンデュラム: P効果 + モンスター効果 の2ブロック、pY/mYはY位置調整にのみ使う
+    // 自動フォントサイズ: 両ブロック合計がtxtAreaHに収まるfs
+    const pHead = g('ym_pHead'), pEff = g('ym_pEffect');
+    const mHead = g('ym_mHead'), mEff = g('ym_effect');
+    fs = calcAutoFs([
+      {text: pEff, hasHead: !!pHead},
+      {text: mEff, hasHead: !!mHead}
+    ], txtW, txtAreaH, fsMax);
+
+    const lh = fs*1.65, sp = fs*0.5;
+    const bodyFont = `${fs}px "Noto Sans JP",sans-serif`;
+    const headFont = `bold ${fs+2}px "Noto Sans JP",sans-serif`;
+
+    // P効果ブロック描画
+    const pY = parseInt(g('ym_pY'));
+    dt(pHead, txL, pY, headFont, 'left', bar);
+    let pRowY = pY + (fs+2) + sp;
+    for(const line of wrapLines(pEff, bodyFont, txtW)){
+      dt(line, txL, pRowY, bodyFont);
+      pRowY += lh;
+    }
+
+    // モンスター効果ブロック描画
+    const mY2 = parseInt(g('ym_mY'));
+    dt(mHead, txL, mY2, headFont, 'left', bar);
+    let mRowY = mY2 + (fs+2) + sp;
+    for(const line of wrapLines(mEff, bodyFont, txtW)){
+      dt(line, txL, mRowY, bodyFont);
+      mRowY += lh;
+    }
+  } else {
+    // 通常: 1ブロック
+    const mEff = g('ym_effect');
+    const hasHead = isM;
+    fs = calcAutoFs([{text: mEff, hasHead}], txtW, txtAreaH, fsMax);
+
+    const lh = fs*1.65, sp = fs*0.5;
+    const bodyFont = `${fs}px "Noto Sans JP",sans-serif`;
+    const headFont = `bold ${fs+2}px "Noto Sans JP",sans-serif`;
+
+    let bY = parseInt(g('ym_mY')) - (isM ? 120 : 150);
+    if(isM){
+      dt(g('ym_mHead'), txL, bY, headFont, 'left', bar);
+      bY += (fs+2) + sp;
+    }
+    for(const line of wrapLines(mEff, bodyFont, txtW)){
+      dt(line, txL, bY, bodyFont);
+      bY += lh;
+    }
+  }
+
+  if(cardImg){
+    const cw=parseInt(g('ym_cardW')),cx2=parseInt(g('ym_cardX')),ch=cw*1.45,cy2=(720-ch)/2;
+    ctx.save();ctx.shadowBlur=36;ctx.shadowColor='rgba(0,0,0,.85)';
+    ctx.beginPath();ctx.roundRect(cx2,cy2,cw,ch,13);ctx.fill();ctx.clip();
+    ctx.drawImage(cardImg,cx2,cy2,cw,ch);ctx.restore();
+  }
+}
+
+/* ── Auto-fit sizes ────────────────────────────── */
+function autoFitSizes(){
+  // 使用可能幅 = パネル幅 - 左右パディング各44px
+  const pw    = parseInt(g('ym_pw'));
+  const avail = pw - 88;
+
+  // ── カード名サイズ ──
+  const name = g('ym_name') || ' ';
+  let lo=16, hi=80;
+  for(let i=0;i<12;i++){
+    const mid=((lo+hi)/2)|0;
+    ctx.font=`bold ${mid}px "Noto Sans JP",sans-serif`;
+    if(ctx.measureText(name).width<=avail) lo=mid; else hi=mid;
+  }
+  document.getElementById('ym_nameSize').value = Math.max(16,Math.min(80,lo));
+
+  // ── ステータス行サイズ ──
+  const mode=g('ym_mode'),isM=mode==='monster';
+  const lvType=g('ym_lvType');
+  const isLink=isM&&lvType==='リンク';
+  const isP=isM&&g('ym_scale')!=='none'&&!isLink;
+  let statusText;
+  if(isM){
+    statusText=`属性：${g('ym_attr')} ／ ${g('ym_race')} ／ ${lvType}：`;
+    statusText+=isLink?`LINK-${getActArr().length}`:g('ym_level');
+    if(isP)statusText+=` ／ Ｐスケール：${g('ym_scale')}`;
+  }else{
+    const kind=g('ym_cardKind'),icon=g('ym_magicIcon');
+    statusText=`【 ${icon!=='通常'?icon+' ':''}${kind}カード 】`;
+  }
+  let slo=12, shi=60;
+  for(let i=0;i<12;i++){
+    const mid=((slo+shi)/2)|0;
+    ctx.font=`bold ${mid}px "Noto Sans JP",sans-serif`;
+    if(ctx.measureText(statusText).width<=avail) slo=mid; else shi=mid;
+  }
+  document.getElementById('ym_statusSize').value = Math.max(12,Math.min(60,slo));
+
+  // ── ATK/DEF サイズ: ATKテキストがパネル幅の半分に収まる最大サイズ ──
+  if(isM){
+    const atkText=`ATK  ${g('ym_atk')}`;
+    const half=avail/2-20;
+    let alo=16, ahi=80;
+    for(let i=0;i<12;i++){
+      const mid=((alo+ahi)/2)|0;
+      ctx.font=`bold ${mid}px "Noto Sans JP",sans-serif`;
+      if(ctx.measureText(atkText).width<=half) alo=mid; else ahi=mid;
+    }
+    document.getElementById('ym_statFontSize').value = Math.max(16,Math.min(80,alo));
+  }
+
+  draw();
+}
+
+/* ── Range vals ────────────────────────────────── */
+const RM={ym_cardX:'v_cardX',ym_cardW:'v_cardW',ym_nameSize:'v_nameSize',ym_statusSize:'v_statusSize',
+  ym_statFontSize:'v_statFontSize',ym_fontSize:'v_fontSize',ym_strokeWidth:'v_strokeWidth',
+  ym_panelAlpha:'v_panelAlpha',ym_pY:'v_pY',ym_mY:'v_mY',
+  ym_pmT:'v_pmT',ym_pmB:'v_pmB',ym_pmR:'v_pmR',ym_pw:'v_pw'};
+function syncRV(){Object.entries(RM).forEach(([id,vid])=>{const e=document.getElementById(id),v=document.getElementById(vid);if(e&&v)v.textContent=e.value})}
+
+/* ── Link arrows ───────────────────────────────── */
+function getActArr(){const v=document.getElementById('ym_linkArrows').value;return v?v.split(',').filter(Boolean):[]}
+document.querySelectorAll('.arr-btn[data-dir]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    let a=getActArr();const d=btn.dataset.dir;
+    a=a.includes(d)?a.filter(x=>x!==d):[...a,d];
+    document.getElementById('ym_linkArrows').value=a.join(',');
+    btn.classList.toggle('on',a.includes(d));
+    document.getElementById('link_rating').textContent=`LINK-${a.length}`;
+    draw();
+  });
+});
+
+/* ── Level type ────────────────────────────────── */
+window.onLvChange=function(){
+  document.getElementById('lv_wrap').style.opacity=g('ym_lvType')==='リンク'?.4:1;draw();
+};
+
+/* ── Mode tabs ─────────────────────────────────── */
+document.querySelectorAll('.mode-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const m=tab.dataset.mode;
+    document.getElementById('ym_mode').value=m;
+    document.querySelectorAll('.mode-tab').forEach(t=>{t.className='mode-tab';if(t.dataset.mode===m)t.classList.add(`active-${m==='trap'?'trap':m==='magic'?'magic':'monster'}`)});
+    if(m==='trap')document.getElementById('ym_cardKind').value='罠';
+    if(m==='magic')document.getElementById('ym_cardKind').value='魔法';
+    updateMagicIcons();draw();
+  });
+});
+
+window.updateMagicIcons=function(){
+  const kind=document.getElementById('ym_cardKind').value;
+  const s=document.getElementById('ym_magicIcon'),prev=s.value;s.innerHTML='';
+  const opts=kind==='罠'?['通常','永続','カウンター']:['通常','永続','速攻','フィールド','装備','儀式'];
+  opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;s.appendChild(op)});
+  if(opts.includes(prev))s.value=prev;draw();
+};
+
+window.toggleSec=id=>document.getElementById(id).classList.toggle('open');
+
+/* ── Files ─────────────────────────────────────── */
+function sF(id,cb){document.getElementById(id).onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{cb(i);draw()};i.src=ev.target.result};r.readAsDataURL(f)}}
+sF('ym_bgFile',i=>bgImg=i);sF('ym_cardFile',i=>cardImg=i);
+
+/* ── Input listeners ───────────────────────────── */
+Object.keys(DEF).forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',draw)});
+
+/* ── Canvas drag ───────────────────────────────── */
+cv.addEventListener('mousedown',e=>{
+  const rect=cv.getBoundingClientRect(),sc=1280/rect.width;
+  const my=(e.clientY-rect.top)*sc;
+  const isM=g('ym_mode')==='monster',isLink=isM&&g('ym_lvType')==='リンク';
+  const isP=isM&&g('ym_scale')!=='none'&&!isLink;
+  const pY=parseInt(g('ym_pY')),mY=parseInt(g('ym_mY'))-(isM?120:150);
+  if(isP&&Math.abs(my-pY)<40){isDrag='p';cv.style.cursor='move'}
+  else if(Math.abs(my-mY)<40){isDrag='m';cv.style.cursor='move'}
+});
+window.addEventListener('mousemove',e=>{
+  if(!isDrag)return;
+  const rect=cv.getBoundingClientRect(),sc=1280/rect.width;
+  const my=Math.round((e.clientY-rect.top)*sc);
+  if(isDrag==='p')document.getElementById('ym_pY').value=Math.max(100,Math.min(650,my));
+  else{const offs=g('ym_mode')==='monster'?120:150;document.getElementById('ym_mY').value=Math.max(100,Math.min(650,my+offs))}
+  draw();
+});
+window.addEventListener('mouseup',()=>{isDrag=null;cv.style.cursor='default'});
+
+/* ── Save / Reset / Export / Import ───────────── */
+document.getElementById('ym_saveBtn').onclick=()=>{const a=document.createElement('a');a.download=(g('ym_name')||'card')+'.png';a.href=cv.toDataURL('image/png');a.click()};
+document.getElementById('ym_resetAll').onclick=()=>{
+  if(!confirm('全てリセットしますか？'))return;
+  bgImg=cardImg=null;
+  document.querySelectorAll('input[type=file]').forEach(i=>i.value='');
+  Object.keys(DEF).forEach(id=>{const e=document.getElementById(id);if(e)e.value=DEF[id]});
+  document.querySelectorAll('.arr-btn[data-dir]').forEach(b=>b.classList.remove('on'));
+  document.getElementById('link_rating').textContent='LINK-0';
+  document.querySelectorAll('.mode-tab').forEach(t=>t.className='mode-tab');
+  document.querySelector('.mode-tab[data-mode="monster"]').classList.add('active-monster');
+  updateMagicIcons();draw();
+};
+document.getElementById('ym_exportBtn').onclick=()=>{
+  const cfg={};Object.keys(DEF).forEach(id=>cfg[id]=g(id));
+  navigator.clipboard.writeText(btoa(unescape(encodeURIComponent(JSON.stringify(cfg))))).then(()=>alert('コピーしました！'));
+};
+document.getElementById('ym_importBtn').onclick=()=>{
+  const inp=document.getElementById('ym_importInput').value.trim();if(!inp)return;
+  try{
+    const cfg=JSON.parse(decodeURIComponent(escape(atob(inp))));
+    Object.keys(cfg).forEach(id=>{const e=document.getElementById(id);if(e)e.value=cfg[id]});
+    const m=cfg.ym_mode||'monster';
+    document.querySelectorAll('.mode-tab').forEach(t=>t.className='mode-tab');
+    document.querySelector(`.mode-tab[data-mode="${m}"]`).classList.add(`active-${m==='trap'?'trap':m==='magic'?'magic':'monster'}`);
+    if(cfg.ym_linkArrows){const a=cfg.ym_linkArrows.split(',').filter(Boolean);document.querySelectorAll('.arr-btn[data-dir]').forEach(b=>b.classList.toggle('on',a.includes(b.dataset.dir)));document.getElementById('link_rating').textContent=`LINK-${a.length}`}
+    updateMagicIcons();draw();alert('読み込みました！');
+  }catch{alert('無効なコードです。')}
+};
+
+/* ── Utils ─────────────────────────────────────── */
+function h2r(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');return `rgba(${parseInt(hex.slice(0,2),16)},${parseInt(hex.slice(2,4),16)},${parseInt(hex.slice(4,6),16)},${a})`}
+
+/* ══════════════════════════════════════════════════
+   URL FETCH
+   公式DB の cid → ygoprodeck.com API (CORS対応・無料)
+   https://db.ygoprodeck.com/api/v7/cardinfo.php?konami_id=CID&misc=yes
+══════════════════════════════════════════════════ */
+const ATTR_EN={DARK:'闇',LIGHT:'光',EARTH:'地',WATER:'水',FIRE:'炎',WIND:'風',DIVINE:'神'};
+const RACE_EN={
+  'Spellcaster':'魔法使い族','Dragon':'ドラゴン族','Zombie':'アンデット族','Warrior':'戦士族',
+  'Beast-Warrior':'獣戦士族','Beast':'獣族','Winged Beast':'鳥獣族','Fiend':'悪魔族',
+  'Fairy':'天使族','Insect':'昆虫族','Dinosaur':'恐竜族','Reptile':'爬虫類族',
+  'Fish':'魚族','Sea Serpent':'海竜族','Aqua':'水族','Pyro':'炎族','Thunder':'雷族',
+  'Rock':'岩石族','Plant':'植物族','Machine':'機械族','Psychic':'サイキック族',
+  'Divine-Beast':'幻神獣族','Wyrm':'幻竜族','Cyberse':'サイバース族','Illusion':'幻想魔族'
+};
+// ygoprodeck の linkmarkers 表記 → 内部キー
+const DIR_MAP={
+  'Top-Left':'TL','Top':'T','Top-Right':'TR',
+  'Left':'L','Right':'R',
+  'Bottom-Left':'BL','Bottom':'B','Bottom-Right':'BR'
+};
+// ygoprodeck の race(type) → スペル/トラップアイコン日本語
+const ICON_MAP={
+  'Quick-Play':'速攻','Field':'フィールド','Equip':'装備',
+  'Ritual':'儀式','Continuous':'永続','Counter':'カウンター',
+  'Normal':'通常'
+};
+
+// カードタイプ文字列からモード・種別を判定
+function parseCardType(typeStr){
+  // typeStr 例: "Effect Monster", "Link/Effect Monster", "XYZ Monster",
+  //             "Pendulum/Effect Monster", "Normal Monster",
+  //             "Spell Card", "Trap Card"
+  const t=typeStr||'';
+  if(t.includes('Spell'))return{mode:'magic',lvType:null};
+  if(t.includes('Trap'))return{mode:'trap',lvType:null};
+  // monster
+  let lvType='レベル';
+  if(t.includes('Link'))lvType='リンク';
+  else if(t.includes('XYZ')||t.includes('Xyz'))lvType='ランク';
+  return{mode:'monster',lvType};
+}
+
+function showSt(state,msg){
+  const el=document.getElementById('ym_fetchSt');
+  el.className=`fetch-st ${state}`;
+  if(state==='loading')el.innerHTML=`<div class="spinner"></div><span>${msg}</span>`;
+  else el.textContent=msg;
+}
+
+// URLから cid を抽出
+function extractCid(url){
+  const m=url.match(/[?&]cid=(\d+)/);
+  return m?m[1]:null;
+}
+
+async function fetchCard(){
+  const url=document.getElementById('ym_dbUrl').value.trim();
+  if(!url){showSt('err','⚠️ URLを入力してください');return}
+
+  const cid=extractCid(url);
+  if(!cid){
+    showSt('err','⚠️ URLから cid が取得できません。\n例: …card_search.action?ope=2&cid=4041');
+    return;
+  }
+
+  showSt('loading',`cid=${cid} のカード情報を取得中...`);
+  document.getElementById('ym_fetchBtn').disabled=true;
+
+  try{
+    // 2本同時fetch: ygoresources(日本語テキスト) + ygoprodeck(ステータス)
+    const [resJa, resStat] = await Promise.all([
+      fetch(`https://db.ygoresources.com/data/card/${cid}`),
+      fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?konami_id=${cid}&misc=yes`)
+    ]);
+
+    // ygoresources は存在しないカードでも200を返す場合があるのでjsonをチェック
+    const jaJson  = resJa.ok   ? await resJa.json()   : null;
+    const statJson = resStat.ok ? await resStat.json() : null;
+
+    const jaData  = jaJson?.cardData?.ja   || null;
+    const statRaw = statJson?.data?.[0]    || null;
+
+    if(!jaData && !statRaw) throw new Error(`cid=${cid} のカードが見つかりませんでした`);
+
+    applyCard(statRaw, jaData);
+    const dispName = jaData?.name || statRaw?.name || `cid=${cid}`;
+    showSt('ok',`✅「${dispName}」を取り込みました！`);
+  }catch(err){
+    console.error(err);
+    showSt('err',`❌ 取り込みに失敗: ${err.message}`);
+  }finally{
+    document.getElementById('ym_fetchBtn').disabled=false;
+  }
+}
+
+// statRaw = ygoprodeck data[0]、jaData = ygoresources cardData.ja
+// どちらかがnullでも動作する
+function applyCard(statRaw, jaData){
+  // ── カード種別判定（ygoprodeckのtype優先、なければygoresources） ──
+  const typeStr = statRaw?.type || '';
+  const jaType  = jaData?.cardType || '';          // "monster"|"spell"|"trap"
+  let mode, lvType;
+  if(typeStr){
+    ({mode,lvType}=parseCardType(typeStr));
+  } else {
+    mode   = jaType==='monster'?'monster': jaType==='spell'?'magic':'trap';
+    lvType = 'レベル';
+  }
+
+  document.getElementById('ym_mode').value=mode;
+  document.querySelectorAll('.mode-tab').forEach(t=>{
+    t.className='mode-tab';
+    if(t.dataset.mode===mode)t.classList.add(`active-${mode==='trap'?'trap':mode==='magic'?'magic':'monster'}`);
+  });
+
+  // ── カード名: 日本語優先 ──
+  const name = jaData?.name || statRaw?.name || '';
+  document.getElementById('ym_name').value = name;
+
+  // ── 効果テキスト: 日本語優先 ──
+  const jaEffect = jaData?.effectText || '';
+  const enDesc   = statRaw?.desc || '';
+
+  if(mode==='monster'){
+    // 属性
+    const attrJa=statRaw?.attribute?(ATTR_EN[statRaw.attribute]||null):null;
+    if(attrJa){const s=document.getElementById('ym_attr');for(const o of s.options)if(o.value===attrJa){s.value=attrJa;break}}
+
+    // 種族
+    const raceJa=statRaw?.race?(RACE_EN[statRaw.race]||null):null;
+    if(raceJa){const s=document.getElementById('ym_race');for(const o of s.options)if(o.value===raceJa){s.value=raceJa;break}}
+
+    // 種別
+    const lvEl=document.getElementById('ym_lvType');
+    lvEl.value=lvType||'レベル';
+
+    if(lvType==='リンク'){
+      const markers=statRaw?.linkmarkers||[];
+      const arrows=markers.map(m=>DIR_MAP[m]).filter(Boolean);
+      document.getElementById('ym_linkArrows').value=arrows.join(',');
+      document.querySelectorAll('.arr-btn[data-dir]').forEach(b=>b.classList.toggle('on',arrows.includes(b.dataset.dir)));
+      document.getElementById('link_rating').textContent=`LINK-${arrows.length}`;
+    } else {
+      if(statRaw?.level!=null) document.getElementById('ym_level').value=statRaw.level;
+    }
+
+    // Pスケール: ygoresourcesのpendulumScale優先、なければygoprodeckのscale
+    const scEl=document.getElementById('ym_scale');
+    const pScale = jaData?.pendulumScale ?? statRaw?.scale ?? null;
+    if(pScale!=null) scEl.value=String(pScale);
+    else scEl.value='none';
+
+    // ATK/DEF
+    if(statRaw?.atk!=null) document.getElementById('ym_atk').value=statRaw.atk===-1?'?':String(statRaw.atk);
+    if(statRaw?.def!=null) document.getElementById('ym_def').value=statRaw.def===-1?'?':String(statRaw.def);
+
+    // ── ペンデュラム効果の分離 ──────────────────────────────────
+    // ygoresources: pendulumEffectText = P効果(日), effectText = モンスター効果(日)
+    const jaPendText = jaData?.pendulumEffectText || '';
+    if(jaPendText){
+      // ygoresourcesから日本語P効果・モンスター効果を直接取得
+      document.getElementById('ym_pEffect').value = jaPendText.trim();
+      document.getElementById('ym_effect').value  = jaEffect.trim();
+    } else {
+      // フォールバック: 英語descを [ Pendulum Effect ] / [ Monster Effect ] でパース
+      const enPendRe = /\[\s*Pendulum Effect\s*\]([\s\S]*?)(?:[-─]{3,}|\[\s*Monster Effect\s*\])/i;
+      const enMonRe  = /\[\s*Monster Effect\s*\]([\s\S]*)/i;
+      const enPMatch = enDesc.match(enPendRe);
+      const enMMatch = enDesc.match(enMonRe);
+      if(enPMatch){
+        document.getElementById('ym_pEffect').value = enPMatch[1].trim();
+        document.getElementById('ym_effect').value  = enMMatch ? enMMatch[1].trim() : (jaEffect || enDesc);
+      } else {
+        document.getElementById('ym_effect').value = jaEffect || enDesc;
+      }
+    }
+
+  } else {
+    // 魔法・罠
+    document.getElementById('ym_cardKind').value = mode==='magic'?'魔法':'罠';
+    updateMagicIcons();
+
+    // アイコン種別: ygoresources の property フィールド優先
+    const prop = jaData?.property || statRaw?.race || 'Normal';
+    // ygoresources property: "field","equip","ritual","continuous","counter","quick-play","normal"
+    const propMap={'field':'フィールド','equip':'装備','ritual':'儀式',
+      'continuous':'永続','counter':'カウンター','quick-play':'速攻','normal':'通常'};
+    const iconJa = propMap[prop?.toLowerCase()] || ICON_MAP[prop] || '通常';
+    const s=document.getElementById('ym_magicIcon');
+    for(const o of s.options)if(o.value===iconJa){s.value=iconJa;break}
+
+    document.getElementById('ym_effect').value = jaEffect || enDesc;
+  }
+
+  onLvChange(); draw();
+}
+
+document.getElementById('ym_fetchBtn').addEventListener('click',fetchCard);
+document.getElementById('ym_dbUrl').addEventListener('keydown',e=>{if(e.key==='Enter')fetchCard()});
+
+/* ── Init ──────────────────────────────────────── */
+setTimeout(draw,80);
+})();
+</script>
+</body>
+</html>
